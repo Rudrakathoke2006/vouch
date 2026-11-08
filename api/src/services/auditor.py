@@ -290,13 +290,13 @@ async def run_evidence_audit(
                 unit_price = float(it.get("unit_price", 0.0))
                 if unit_price > ref_data["max"]:
                     z_score = (unit_price - ref_data["mean"]) / ref_data["std"]
-                    s1_score = min(int(min(z_score * 5, 20)), 20)
+                    s1_score = 25 if z_score > 3.0 else 20
                     price_flag = True
                     reasons.append(f"Item '{it['description']}' price (${unit_price:,.2f}) significantly exceeds reference range (max ${ref_data['max']:,.2f}).")
                     break
         if price_flag:
             break
-    soft_signals["S1"] = {"name": "Price Benchmark Check", "score": s1_score, "weight": 20, "flagged": price_flag}
+    soft_signals["S1"] = {"name": "Price Benchmark Check", "score": s1_score, "weight": 25, "flagged": price_flag}
     risk_score += s1_score
 
     # S2: Image pHash Reuse (Weight 25)
@@ -304,7 +304,7 @@ async def run_evidence_audit(
         session=session,
         phash_str=evidence.phash,
         current_campaign_id=campaign.id,
-        threshold=6,
+        threshold=2,
     )
     s2_score = 25 if phash_conflict else 0
     if phash_conflict:
@@ -327,12 +327,19 @@ async def run_evidence_audit(
 
     # S4: Document Metadata / Scanner Anomalies (Weight 15)
     s4_score = 0
+    has_prompt_injection = False
     for anom in ext.get("anomalies", []):
-        if anom.get("type") in ("MESSY_SCAN", "ADVERSARIAL_TEXT_DETECTED", "METADATA_INCONSISTENCY"):
+        anom_type = anom.get("type")
+        if anom_type == "ADVERSARIAL_TEXT_DETECTED":
+            has_prompt_injection = True
+            reasons.append(f"Security Alert: Adversarial prompt injection text detected: {anom.get('evidence')}")
+        elif anom_type in ("MESSY_SCAN", "METADATA_INCONSISTENCY"):
             s4_score = 15
             reasons.append(f"Document anomaly detected: {anom.get('evidence')}")
             break
-    soft_signals["S4"] = {"name": "Document Integrity & Metadata", "score": s4_score, "weight": 15}
+    if has_prompt_injection:
+        s4_score = 40
+    soft_signals["S4"] = {"name": "Document Integrity & Security", "score": s4_score, "weight": 15, "injection": has_prompt_injection}
     risk_score += s4_score
 
     # S5: Purpose Match Score (Weight 15)
@@ -353,17 +360,31 @@ async def run_evidence_audit(
     risk_score += s6_score
 
     # DECISION ENGINE THRESHOLDS
-    # Hard failures force decision
-    if not h1_pass or not h5_pass:
+    # Hard failures and security attacks force decision
+    if has_prompt_injection:
+        decision = "REJECT"
+        risk_score = max(risk_score, 90)
+    elif not h1_pass or not h5_pass:
         decision = "REJECT"
         risk_score = max(risk_score, 85)
-    elif not h2_pass or not h3_pass or not h4_pass or not h6_pass:
-        # Arithmetic or date errors -> REQUEST_MORE (fixable) or HUMAN_REVIEW
-        decision = "REQUEST_MORE" if not h2_pass else "HUMAN_REVIEW"
+    elif not h2_pass:
+        # Check size of discrepancy
+        diff = abs(total - (subtotal + tax))
+        if diff > 10.0:
+            decision = "REJECT"
+            risk_score = max(risk_score, 85)
+        else:
+            decision = "REQUEST_MORE"
+            risk_score = max(risk_score, 50)
+    elif not h3_pass:
+        decision = "REJECT"
+        risk_score = max(risk_score, 85)
+    elif not h4_pass or not h6_pass:
+        decision = "REQUEST_MORE" if not h4_pass else "REJECT"
         risk_score = max(risk_score, 50)
     else:
         # All hard checks passed, decide based on risk score
-        if risk_score <= 25:
+        if risk_score <= 20:
             decision = "RELEASE"
             if not reasons:
                 reasons.append(f"All hard checks passed. Payee identity '{payee.legal_name}', line items, and prices validated.")
