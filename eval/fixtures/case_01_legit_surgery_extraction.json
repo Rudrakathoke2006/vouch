@@ -1,0 +1,30 @@
+{
+  "payee_name": "St. Jude Children's Health Center (Sandbox Fictional)",
+  "payee_id": "REG-US-89104",
+  "invoice_number": "INV-2026-0811",
+  "invoice_date": "2026-11-01",
+  "currency": "USD",
+  "line_items": [
+    {
+      "description": "Emergency Trauma Surgery",
+      "quantity": 1,
+      "unit_price": 7500.0,
+      "amount": 7500.0
+    },
+    {
+      "description": "Surgical Anesthesia Support",
+      "quantity": 1,
+      "unit_price": 1000.0,
+      "amount": 1000.0
+    }
+  ],
+  "subtotal": 8500.0,
+  "tax": 0.0,
+  "total": 8500.0,
+  "purpose_match": {
+    "score": 0.95,
+    "rationale": "Invoice items align with medical/educational purpose."
+  },
+  "anomalies": [],
+  "confidence": 0.95
+}

@@ -1,0 +1,29 @@
+{
+  "payee_name": "St. Jude Children's Health Center (Sandbox Fictional)",
+  "payee_id": "REG-US-89104",
+  "invoice_number": "INV-2026-SCAN-01",
+  "invoice_date": "2026-11-03",
+  "currency": "USD",
+  "line_items": [
+    {
+      "description": "Pediatric Chemotherapy Infusion",
+      "quantity": 1,
+      "unit_price": 2750.0,
+      "amount": 2750.0
+    }
+  ],
+  "subtotal": 2750.0,
+  "tax": 0.0,
+  "total": 2750.0,
+  "purpose_match": {
+    "score": 0.95,
+    "rationale": "Invoice items align with medical/educational purpose."
+  },
+  "anomalies": [
+    {
+      "type": "MESSY_SCAN",
+      "evidence": "Document exhibits scanner artifacts and reduced optical contrast."
+    }
+  ],
+  "confidence": 0.78
+}

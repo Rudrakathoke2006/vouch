@@ -1,0 +1,29 @@
+{
+  "payee_name": "Hope Academy STEM Foundation (Sandbox Fictional)",
+  "payee_id": "REG-EDU-44210",
+  "invoice_number": "INV-2026-SCAN-02",
+  "invoice_date": "2026-11-04",
+  "currency": "USD",
+  "line_items": [
+    {
+      "description": "STEM Laboratory Robotics Kits (20x)",
+      "quantity": 1,
+      "unit_price": 3500.0,
+      "amount": 3500.0
+    }
+  ],
+  "subtotal": 3500.0,
+  "tax": 0.0,
+  "total": 3500.0,
+  "purpose_match": {
+    "score": 0.95,
+    "rationale": "Invoice items align with medical/educational purpose."
+  },
+  "anomalies": [
+    {
+      "type": "MESSY_SCAN",
+      "evidence": "Document exhibits scanner artifacts and reduced optical contrast."
+    }
+  ],
+  "confidence": 0.78
+}

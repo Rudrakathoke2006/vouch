@@ -1,0 +1,29 @@
+{
+  "payee_name": "Apex Digital Electronics Wholesale Inc.",
+  "payee_id": "REG-CORP-3312",
+  "invoice_number": "INV-PAYEE-02",
+  "invoice_date": "2026-11-06",
+  "currency": "USD",
+  "line_items": [
+    {
+      "description": "Gaming Laptops and High-End GPUs",
+      "quantity": 5,
+      "unit_price": 1800.0,
+      "amount": 9000.0
+    }
+  ],
+  "subtotal": 9000.0,
+  "tax": 0.0,
+  "total": 9000.0,
+  "purpose_match": {
+    "score": 0.4,
+    "rationale": "Discrepancies noted in invoice purpose or payee legitimacy."
+  },
+  "anomalies": [
+    {
+      "type": "PAYEE_MISMATCH",
+      "evidence": "Payee name 'Apex Digital Electronics Wholesale Inc.' does not match registered institutional payee."
+    }
+  ],
+  "confidence": 0.95
+}

@@ -1,0 +1,29 @@
+{
+  "payee_name": "Sarah Connor Personal Checking Account",
+  "payee_id": "SSN-XXX-XX-1234",
+  "invoice_number": "INV-PAYEE-03",
+  "invoice_date": "2026-11-07",
+  "currency": "USD",
+  "line_items": [
+    {
+      "description": "Reimbursement for Patient Food Delivery",
+      "quantity": 1,
+      "unit_price": 2500.0,
+      "amount": 2500.0
+    }
+  ],
+  "subtotal": 2500.0,
+  "tax": 0.0,
+  "total": 2500.0,
+  "purpose_match": {
+    "score": 0.4,
+    "rationale": "Discrepancies noted in invoice purpose or payee legitimacy."
+  },
+  "anomalies": [
+    {
+      "type": "PAYEE_MISMATCH",
+      "evidence": "Payee name 'Sarah Connor Personal Checking Account' does not match registered institutional payee."
+    }
+  ],
+  "confidence": 0.95
+}

@@ -1,0 +1,29 @@
+{
+  "payee_name": "Metro Community Clinic Fictional",
+  "payee_id": "REG-MED-12993",
+  "invoice_number": "INV-2026-SCAN-03",
+  "invoice_date": "2026-11-05",
+  "currency": "USD",
+  "line_items": [
+    {
+      "description": "Emergency Trauma Surgery",
+      "quantity": 1,
+      "unit_price": 8200.0,
+      "amount": 8200.0
+    }
+  ],
+  "subtotal": 8200.0,
+  "tax": 0.0,
+  "total": 8200.0,
+  "purpose_match": {
+    "score": 0.95,
+    "rationale": "Invoice items align with medical/educational purpose."
+  },
+  "anomalies": [
+    {
+      "type": "MESSY_SCAN",
+      "evidence": "Document exhibits scanner artifacts and reduced optical contrast."
+    }
+  ],
+  "confidence": 0.78
+}

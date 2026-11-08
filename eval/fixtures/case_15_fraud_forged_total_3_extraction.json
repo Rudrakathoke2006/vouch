@@ -1,0 +1,29 @@
+{
+  "payee_name": "Metro Community Clinic Fictional",
+  "payee_id": "REG-MED-12993",
+  "invoice_number": "INV-FORGE-103",
+  "invoice_date": "2026-11-04",
+  "currency": "USD",
+  "line_items": [
+    {
+      "description": "Vaccine Storage Refrigeration Unit",
+      "quantity": 1,
+      "unit_price": 1800.0,
+      "amount": 1800.0
+    }
+  ],
+  "subtotal": 1800.0,
+  "tax": 0.0,
+  "total": 9800.0,
+  "purpose_match": {
+    "score": 0.95,
+    "rationale": "Discrepancies noted in invoice purpose or payee legitimacy."
+  },
+  "anomalies": [
+    {
+      "type": "ARITHMETIC_MISMATCH",
+      "evidence": "Total ($9800.00) does not match subtotal plus tax ($1800.00), difference $8000.00"
+    }
+  ],
+  "confidence": 0.95
+}

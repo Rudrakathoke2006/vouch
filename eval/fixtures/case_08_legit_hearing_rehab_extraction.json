@@ -1,0 +1,24 @@
+{
+  "payee_name": "Metro Community Clinic Fictional",
+  "payee_id": "REG-MED-12993",
+  "invoice_number": "INV-METRO-412",
+  "invoice_date": "2026-11-07",
+  "currency": "USD",
+  "line_items": [
+    {
+      "description": "Pediatric Hearing Aid Unit",
+      "quantity": 1,
+      "unit_price": 2400.0,
+      "amount": 2400.0
+    }
+  ],
+  "subtotal": 2400.0,
+  "tax": 0.0,
+  "total": 2400.0,
+  "purpose_match": {
+    "score": 0.95,
+    "rationale": "Invoice items align with medical/educational purpose."
+  },
+  "anomalies": [],
+  "confidence": 0.95
+}

@@ -1,0 +1,24 @@
+{
+  "payee_name": "Metro Community Clinic Fictional",
+  "payee_id": "REG-MED-12993",
+  "invoice_number": "INV-WATER-502",
+  "invoice_date": "2026-11-06",
+  "currency": "USD",
+  "line_items": [
+    {
+      "description": "Clean Water Filtration Units (5x)",
+      "quantity": 1,
+      "unit_price": 5500.0,
+      "amount": 5500.0
+    }
+  ],
+  "subtotal": 5500.0,
+  "tax": 0.0,
+  "total": 5500.0,
+  "purpose_match": {
+    "score": 0.95,
+    "rationale": "Discrepancies noted in invoice purpose or payee legitimacy."
+  },
+  "anomalies": [],
+  "confidence": 0.95
+}

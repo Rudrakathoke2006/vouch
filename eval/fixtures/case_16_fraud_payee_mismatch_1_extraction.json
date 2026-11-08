@@ -1,0 +1,29 @@
+{
+  "payee_name": "QuickCash Medical Services LLC (Personal)",
+  "payee_id": "REG-SHELL-9999",
+  "invoice_number": "INV-PAYEE-01",
+  "invoice_date": "2026-11-05",
+  "currency": "USD",
+  "line_items": [
+    {
+      "description": "Emergency Trauma Surgery",
+      "quantity": 1,
+      "unit_price": 9500.0,
+      "amount": 9500.0
+    }
+  ],
+  "subtotal": 9500.0,
+  "tax": 0.0,
+  "total": 9500.0,
+  "purpose_match": {
+    "score": 0.4,
+    "rationale": "Discrepancies noted in invoice purpose or payee legitimacy."
+  },
+  "anomalies": [
+    {
+      "type": "PAYEE_MISMATCH",
+      "evidence": "Payee name 'QuickCash Medical Services LLC (Personal)' does not match registered institutional payee."
+    }
+  ],
+  "confidence": 0.95
+}

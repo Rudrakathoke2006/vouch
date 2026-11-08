@@ -1,0 +1,29 @@
+{
+  "payee_name": "Hope Academy STEM Foundation (Sandbox Fictional)",
+  "payee_id": "REG-EDU-44210",
+  "invoice_number": "INV-FORGE-102",
+  "invoice_date": "2026-11-03",
+  "currency": "USD",
+  "line_items": [
+    {
+      "description": "Science Curriculum Laboratory Manuals (100x)",
+      "quantity": 1,
+      "unit_price": 1500.0,
+      "amount": 1500.0
+    }
+  ],
+  "subtotal": 1500.0,
+  "tax": 0.0,
+  "total": 4500.0,
+  "purpose_match": {
+    "score": 0.95,
+    "rationale": "Discrepancies noted in invoice purpose or payee legitimacy."
+  },
+  "anomalies": [
+    {
+      "type": "ARITHMETIC_MISMATCH",
+      "evidence": "Total ($4500.00) does not match subtotal plus tax ($1500.00), difference $3000.00"
+    }
+  ],
+  "confidence": 0.95
+}

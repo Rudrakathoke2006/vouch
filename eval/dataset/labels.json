@@ -1,0 +1,302 @@
+[
+  {
+    "case_id": "case_01_legit_surgery",
+    "category": "legitimate",
+    "attack_type": null,
+    "expected_decision": "RELEASE",
+    "invoice_num": "INV-2026-0811",
+    "total": 8500.0,
+    "pdf_file": "case_01_legit_surgery.pdf",
+    "png_file": "case_01_legit_surgery.png"
+  },
+  {
+    "case_id": "case_02_legit_pediatric_med",
+    "category": "legitimate",
+    "attack_type": null,
+    "expected_decision": "RELEASE",
+    "invoice_num": "INV-2026-0812",
+    "total": 2800.0,
+    "pdf_file": "case_02_legit_pediatric_med.pdf",
+    "png_file": "case_02_legit_pediatric_med.png"
+  },
+  {
+    "case_id": "case_03_legit_stem_supplies",
+    "category": "legitimate",
+    "attack_type": null,
+    "expected_decision": "RELEASE",
+    "invoice_num": "INV-EDU-9910",
+    "total": 3672.0,
+    "pdf_file": "case_03_legit_stem_supplies.pdf",
+    "png_file": "case_03_legit_stem_supplies.png"
+  },
+  {
+    "case_id": "case_04_legit_clinic_supplies",
+    "category": "legitimate",
+    "attack_type": null,
+    "expected_decision": "RELEASE",
+    "invoice_num": "INV-METRO-401",
+    "total": 1800.0,
+    "pdf_file": "case_04_legit_clinic_supplies.pdf",
+    "png_file": "case_04_legit_clinic_supplies.png"
+  },
+  {
+    "case_id": "case_05_legit_radiation",
+    "category": "legitimate",
+    "attack_type": null,
+    "expected_decision": "RELEASE",
+    "invoice_num": "INV-2026-0815",
+    "total": 4400.0,
+    "pdf_file": "case_05_legit_radiation.pdf",
+    "png_file": "case_05_legit_radiation.png"
+  },
+  {
+    "case_id": "case_06_legit_water_units",
+    "category": "legitimate",
+    "attack_type": null,
+    "expected_decision": "RELEASE",
+    "invoice_num": "INV-WATER-502",
+    "total": 5500.0,
+    "pdf_file": "case_06_legit_water_units.pdf",
+    "png_file": "case_06_legit_water_units.png"
+  },
+  {
+    "case_id": "case_07_legit_wheelchair",
+    "category": "legitimate",
+    "attack_type": null,
+    "expected_decision": "RELEASE",
+    "invoice_num": "INV-2026-0817",
+    "total": 1200.0,
+    "pdf_file": "case_07_legit_wheelchair.pdf",
+    "png_file": "case_07_legit_wheelchair.png"
+  },
+  {
+    "case_id": "case_08_legit_hearing_rehab",
+    "category": "legitimate",
+    "attack_type": null,
+    "expected_decision": "RELEASE",
+    "invoice_num": "INV-METRO-412",
+    "total": 2400.0,
+    "pdf_file": "case_08_legit_hearing_rehab.pdf",
+    "png_file": "case_08_legit_hearing_rehab.png"
+  },
+  {
+    "case_id": "case_09_legit_books_science",
+    "category": "legitimate",
+    "attack_type": null,
+    "expected_decision": "RELEASE",
+    "invoice_num": "INV-EDU-9925",
+    "total": 1575.0,
+    "pdf_file": "case_09_legit_books_science.pdf",
+    "png_file": "case_09_legit_books_science.png"
+  },
+  {
+    "case_id": "case_10_legit_messy_scan_1",
+    "category": "legitimate",
+    "attack_type": null,
+    "expected_decision": "RELEASE",
+    "invoice_num": "INV-2026-SCAN-01",
+    "total": 2750.0,
+    "pdf_file": "case_10_legit_messy_scan_1.pdf",
+    "png_file": "case_10_legit_messy_scan_1.png"
+  },
+  {
+    "case_id": "case_11_legit_messy_scan_2",
+    "category": "legitimate",
+    "attack_type": null,
+    "expected_decision": "RELEASE",
+    "invoice_num": "INV-2026-SCAN-02",
+    "total": 3500.0,
+    "pdf_file": "case_11_legit_messy_scan_2.pdf",
+    "png_file": "case_11_legit_messy_scan_2.png"
+  },
+  {
+    "case_id": "case_12_legit_messy_scan_3",
+    "category": "legitimate",
+    "attack_type": null,
+    "expected_decision": "RELEASE",
+    "invoice_num": "INV-2026-SCAN-03",
+    "total": 8200.0,
+    "pdf_file": "case_12_legit_messy_scan_3.pdf",
+    "png_file": "case_12_legit_messy_scan_3.png"
+  },
+  {
+    "case_id": "case_13_fraud_forged_total_1",
+    "category": "fraudulent",
+    "attack_type": "forged_total",
+    "expected_decision": "REJECT",
+    "invoice_num": "INV-FORGE-101",
+    "total": 7800.0,
+    "pdf_file": "case_13_fraud_forged_total_1.pdf",
+    "png_file": "case_13_fraud_forged_total_1.png"
+  },
+  {
+    "case_id": "case_14_fraud_forged_total_2",
+    "category": "fraudulent",
+    "attack_type": "forged_total",
+    "expected_decision": "REJECT",
+    "invoice_num": "INV-FORGE-102",
+    "total": 4500.0,
+    "pdf_file": "case_14_fraud_forged_total_2.pdf",
+    "png_file": "case_14_fraud_forged_total_2.png"
+  },
+  {
+    "case_id": "case_15_fraud_forged_total_3",
+    "category": "fraudulent",
+    "attack_type": "forged_total",
+    "expected_decision": "REJECT",
+    "invoice_num": "INV-FORGE-103",
+    "total": 9800.0,
+    "pdf_file": "case_15_fraud_forged_total_3.pdf",
+    "png_file": "case_15_fraud_forged_total_3.png"
+  },
+  {
+    "case_id": "case_16_fraud_payee_mismatch_1",
+    "category": "fraudulent",
+    "attack_type": "payee_mismatch",
+    "expected_decision": "REJECT",
+    "invoice_num": "INV-PAYEE-01",
+    "total": 9500.0,
+    "pdf_file": "case_16_fraud_payee_mismatch_1.pdf",
+    "png_file": "case_16_fraud_payee_mismatch_1.png"
+  },
+  {
+    "case_id": "case_17_fraud_payee_mismatch_2",
+    "category": "fraudulent",
+    "attack_type": "payee_mismatch",
+    "expected_decision": "REJECT",
+    "invoice_num": "INV-PAYEE-02",
+    "total": 9000.0,
+    "pdf_file": "case_17_fraud_payee_mismatch_2.pdf",
+    "png_file": "case_17_fraud_payee_mismatch_2.png"
+  },
+  {
+    "case_id": "case_18_fraud_payee_mismatch_3",
+    "category": "fraudulent",
+    "attack_type": "payee_mismatch",
+    "expected_decision": "REJECT",
+    "invoice_num": "INV-PAYEE-03",
+    "total": 2500.0,
+    "pdf_file": "case_18_fraud_payee_mismatch_3.pdf",
+    "png_file": "case_18_fraud_payee_mismatch_3.png"
+  },
+  {
+    "case_id": "case_19_fraud_inflated_price_1",
+    "category": "fraudulent",
+    "attack_type": "inflated_price",
+    "expected_decision": "HUMAN_REVIEW",
+    "invoice_num": "INV-INFL-201",
+    "total": 14500.0,
+    "pdf_file": "case_19_fraud_inflated_price_1.pdf",
+    "png_file": "case_19_fraud_inflated_price_1.png"
+  },
+  {
+    "case_id": "case_20_fraud_inflated_price_2",
+    "category": "fraudulent",
+    "attack_type": "inflated_price",
+    "expected_decision": "HUMAN_REVIEW",
+    "invoice_num": "INV-INFL-202",
+    "total": 22000.0,
+    "pdf_file": "case_20_fraud_inflated_price_2.pdf",
+    "png_file": "case_20_fraud_inflated_price_2.png"
+  },
+  {
+    "case_id": "case_21_fraud_inflated_price_3",
+    "category": "fraudulent",
+    "attack_type": "inflated_price",
+    "expected_decision": "HUMAN_REVIEW",
+    "invoice_num": "INV-INFL-203",
+    "total": 38000.0,
+    "pdf_file": "case_21_fraud_inflated_price_3.pdf",
+    "png_file": "case_21_fraud_inflated_price_3.png"
+  },
+  {
+    "case_id": "case_22_fraud_duplicate_invoice_1",
+    "category": "fraudulent",
+    "attack_type": "duplicate_invoice",
+    "expected_decision": "REJECT",
+    "invoice_num": "INV-2026-0811",
+    "total": 8500.0,
+    "pdf_file": "case_22_fraud_duplicate_invoice_1.pdf",
+    "png_file": "case_22_fraud_duplicate_invoice_1.png"
+  },
+  {
+    "case_id": "case_23_fraud_duplicate_invoice_2",
+    "category": "fraudulent",
+    "attack_type": "duplicate_invoice",
+    "expected_decision": "REJECT",
+    "invoice_num": "INV-EDU-9910",
+    "total": 3672.0,
+    "pdf_file": "case_23_fraud_duplicate_invoice_2.pdf",
+    "png_file": "case_23_fraud_duplicate_invoice_2.png"
+  },
+  {
+    "case_id": "case_24_fraud_duplicate_invoice_3",
+    "category": "fraudulent",
+    "attack_type": "duplicate_invoice",
+    "expected_decision": "REJECT",
+    "invoice_num": "INV-WATER-502",
+    "total": 5500.0,
+    "pdf_file": "case_24_fraud_duplicate_invoice_3.pdf",
+    "png_file": "case_24_fraud_duplicate_invoice_3.png"
+  },
+  {
+    "case_id": "case_25_fraud_reused_photo_1",
+    "category": "fraudulent",
+    "attack_type": "reused_photo",
+    "expected_decision": "HUMAN_REVIEW",
+    "invoice_num": "INV-STOLEN-01",
+    "total": 2200.0,
+    "pdf_file": "case_25_fraud_reused_photo_1.pdf",
+    "png_file": "case_25_fraud_reused_photo_1.png"
+  },
+  {
+    "case_id": "case_26_fraud_reused_photo_2",
+    "category": "fraudulent",
+    "attack_type": "reused_photo",
+    "expected_decision": "HUMAN_REVIEW",
+    "invoice_num": "INV-STOLEN-02",
+    "total": 3400.0,
+    "pdf_file": "case_26_fraud_reused_photo_2.pdf",
+    "png_file": "case_26_fraud_reused_photo_2.png"
+  },
+  {
+    "case_id": "case_27_fraud_reused_photo_3",
+    "category": "fraudulent",
+    "attack_type": "reused_photo",
+    "expected_decision": "HUMAN_REVIEW",
+    "invoice_num": "INV-STOLEN-03",
+    "total": 1800.0,
+    "pdf_file": "case_27_fraud_reused_photo_3.pdf",
+    "png_file": "case_27_fraud_reused_photo_3.png"
+  },
+  {
+    "case_id": "case_28_fraud_altered_date_past",
+    "category": "fraudulent",
+    "attack_type": "altered_date",
+    "expected_decision": "REJECT",
+    "invoice_num": "INV-OLD-901",
+    "total": 9500.0,
+    "pdf_file": "case_28_fraud_altered_date_past.pdf",
+    "png_file": "case_28_fraud_altered_date_past.png"
+  },
+  {
+    "case_id": "case_29_fraud_altered_date_future",
+    "category": "fraudulent",
+    "attack_type": "altered_date",
+    "expected_decision": "REJECT",
+    "invoice_num": "INV-FUT-902",
+    "total": 3400.0,
+    "pdf_file": "case_29_fraud_altered_date_future.pdf",
+    "png_file": "case_29_fraud_altered_date_future.png"
+  },
+  {
+    "case_id": "case_30_fraud_prompt_injection",
+    "category": "fraudulent",
+    "attack_type": "prompt_injection",
+    "expected_decision": "REJECT",
+    "invoice_num": "INV-INJECT-999",
+    "total": 3000.0,
+    "pdf_file": "case_30_fraud_prompt_injection.pdf",
+    "png_file": "case_30_fraud_prompt_injection.png"
+  }
+]
