@@ -18,3 +18,4 @@ FastAPI (Python 3.11/3.12), Postgres, Next.js + Tailwind, AG Grid Community, pyt
 - Work on your own branch. Do not edit another agent's files.
 - The API contract is docs/openapi.yaml. Change it only through the lead agent.
 - Keep commits small and the README setup steps current.
+

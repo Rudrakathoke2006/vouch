@@ -86,3 +86,4 @@ One line: Vouch holds donations, checks the proof of spending with AI and rules,
 3. Donation refunded at most once
 4. Every PayPal call is idempotent and logged
 5. Ledger entry written in same DB transaction as intent to act
+
