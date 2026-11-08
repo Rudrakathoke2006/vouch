@@ -124,3 +124,4 @@ async def execute_release_payout(
     await session.commit()
     await session.refresh(release)
     return release
+

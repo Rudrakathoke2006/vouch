@@ -90,3 +90,4 @@ async def verify_chain(db: AsyncSession = Depends(get_db)):
     """
     result = await verify_audit_chain(db)
     return result
+

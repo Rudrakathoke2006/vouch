@@ -93,3 +93,4 @@ if __name__ == "__main__":
     db_conn = os.environ.get("DATABASE_URL", "postgresql://postgres:root@localhost:5432/vouch_db")
     success = asyncio.run(verify_chain_independent(db_conn))
     sys.exit(0 if success else 1)
+

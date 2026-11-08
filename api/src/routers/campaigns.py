@@ -331,3 +331,4 @@ async def get_ledger(campaign_id: uuid.UUID, db: AsyncSession = Depends(get_db))
         "financials": fin,
         "entries": entries,
     }
+

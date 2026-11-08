@@ -137,3 +137,4 @@ This project was built pair-programming with **Google Antigravity** using **Gemi
 - *(Navigate to `/verify-chain` or run `python scripts/verify_chain.py`)*  
 - *"Finally, every single action is recorded in an immutable, SHA-256 hash-chained audit log. Our standalone verifier verifies over 500 blocks with zero breaks."*  
 - *"Vouch restores donor trust with real PayPal rails, deterministic money invariants, and explainable AI verification. Thank you!"*
+

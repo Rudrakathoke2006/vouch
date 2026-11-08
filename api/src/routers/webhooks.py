@@ -100,3 +100,4 @@ async def execute_agent_case(audit_id: uuid.UUID, db: AsyncSession = Depends(get
     """Executes the Release Agent pipeline for an audited case (F11)."""
     traces = await run_case(session=db, audit_id=audit_id)
     return {"audit_id": str(audit_id), "status": "COMPLETED", "traces": traces}
+

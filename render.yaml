@@ -28,3 +28,4 @@ databases:
     plan: free
     databaseName: vouch_db
     user: vouch_user
+

@@ -57,3 +57,4 @@ jobs:
           DATABASE_URL: postgresql://postgres:root@localhost:5432/vouch_db
         run: |
           python scripts/verify_chain.py
+

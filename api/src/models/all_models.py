@@ -241,3 +241,4 @@ class WebhookEvent(Base):
     payload_json = Column(JSON, nullable=False)
     status = Column(String(50), default="PROCESSED", nullable=False)
     received_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
+

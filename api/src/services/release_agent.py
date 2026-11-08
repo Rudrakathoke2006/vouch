@@ -142,3 +142,4 @@ async def run_case(
 
     await session.commit()
     return traces
+
