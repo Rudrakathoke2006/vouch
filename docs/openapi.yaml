@@ -1,0 +1,941 @@
+openapi: 3.1.0
+info:
+  title: Vouch API
+  description: |
+    API specification for Vouch: Hold, Verify, Release.
+    An escrow-style donation platform running on PayPal rails with AI-powered evidence auditing,
+    deterministic money invariants, hash-chained tamper-evident logging, and automatic deadline refunds.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://vouch-api.onrender.com
+    description: Render deployment
+
+paths:
+  /healthz:
+    get:
+      summary: Health check endpoint
+      description: Returns service status, database health, and active payment/LLM modes.
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  database:
+                    type: string
+                    example: connected
+                  payment_provider:
+                    type: string
+                    example: mock
+                  llm_provider:
+                    type: string
+                    example: mock
+                  version:
+                    type: string
+                    example: 1.0.0
+
+  /payees:
+    post:
+      summary: Register a new institutional payee
+      description: Registers an institution (hospital, school, vendor) allowed to receive released funds.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayeeCreate'
+      responses:
+        '201':
+          description: Payee registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payee'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /payees/{id}/verify:
+    post:
+      summary: Verify or block an institutional payee
+      description: Reviewer action to verify a payee against synthetic registry records.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+                - verified_by
+              properties:
+                status:
+                  type: string
+                  enum: [VERIFIED, BLOCKED]
+                verified_by:
+                  type: string
+                  example: admin_reviewer_1
+                notes:
+                  type: string
+                  example: Verified against synthetic state registry.
+      responses:
+        '200':
+          description: Payee status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payee'
+
+  /payees/{id}/confirm-evidence/{token}:
+    post:
+      summary: (Add-On 1) Payee independent confirmation
+      description: Signed one-click link allowing the verified payee to independently confirm "this invoice is ours."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - confirmed
+              properties:
+                confirmed:
+                  type: boolean
+                signer_name:
+                  type: string
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Payee confirmation registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  evidence_id:
+                    type: string
+                    format: uuid
+                  payee_confirmed:
+                    type: boolean
+                  confirmed_at:
+                    type: string
+                    format: date-time
+
+  /campaigns:
+    get:
+      summary: List all campaigns
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [DRAFT, ACTIVE, CLOSED]
+      responses:
+        '200':
+          description: List of campaigns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Campaign'
+    post:
+      summary: Create a new fundraising campaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CampaignCreate'
+      responses:
+        '201':
+          description: Campaign created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+
+  /campaigns/{id}:
+    get:
+      summary: Retrieve campaign details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Campaign details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /campaigns/{id}/donate:
+    post:
+      summary: Initiate a donation
+      description: Creates a PayPal Orders v2 with custom_id = donation_id.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DonationCreate'
+      responses:
+        '201':
+          description: Donation initiated and PayPal order generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonationOrderResponse'
+
+  /orders/{order_id}/capture:
+    post:
+      summary: Capture an approved PayPal order
+      description: Captures funds into the platform account. Writes ledger entry HELD with row-level locking.
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Donation captured and funds held
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Donation'
+
+  /campaigns/{id}/evidence:
+    post:
+      summary: Upload spend evidence document
+      description: Uploads invoice/bill (PDF/JPG/PNG <= 10MB) and triggers hashing and reuse checks.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - requested_amount
+              properties:
+                file:
+                  type: string
+                  format: binary
+                requested_amount:
+                  type: number
+                  format: float
+                  example: 2500.00
+                milestone_id:
+                  type: string
+                  description: Optional milestone declared by campaign
+      responses:
+        '202':
+          description: Evidence accepted and audit initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceUploadResponse'
+
+  /audits/{id}:
+    get:
+      summary: Get audit results and explanation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Audit breakdown
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Audit'
+
+  /reviews/queue:
+    get:
+      summary: Retrieve reviewer queue
+      description: Feeds the AG Grid reviewer table with flagged or pending cases.
+      responses:
+        '200':
+          description: List of items requiring human triage
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReviewQueueItem'
+
+  /reviews/{audit_id}:
+    post:
+      summary: Submit human reviewer disposition
+      parameters:
+        - name: audit_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - action
+                - reviewer
+                - reason
+              properties:
+                action:
+                  type: string
+                  enum: [APPROVE, REJECT, REQUEST_MORE]
+                reviewer:
+                  type: string
+                  example: admin_sarah
+                reason:
+                  type: string
+                  example: Verified invoice directly with clinic phone registry.
+      responses:
+        '200':
+          description: Reviewer decision recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+
+  /campaigns/{id}/ledger:
+    get:
+      summary: Get campaign financial ledger
+      description: Returns held, released, and refunded totals, plus itemized ledger records.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Financial summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignLedger'
+
+  /receipts/{donation_id}:
+    get:
+      summary: Public donor receipt
+      description: Transparent receipt showing donation status, audited evidence, and release or refund trail.
+      parameters:
+        - name: donation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Donor receipt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonorReceipt'
+
+  /audit-log:
+    get:
+      summary: Retrieve hash-chained audit log
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: Audit log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditLogEntry'
+
+  /audit-log/verify:
+    get:
+      summary: Verify cryptographic chain integrity
+      description: Verifies SHA-256 canonical hash links from genesis to head.
+      responses:
+        '200':
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                    example: true
+                  total_entries:
+                    type: integer
+                    example: 42
+                  head_hash:
+                    type: string
+                    example: 4a2b9f3e...
+                  error:
+                    type: string
+                    nullable: true
+
+  /webhooks/paypal:
+    post:
+      summary: PayPal Webhook receiver
+      description: Verifies cryptographic PayPal signature, logs event, and updates transaction states.
+      responses:
+        '200':
+          description: Webhook received and validated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: accepted
+
+  /admin/tick:
+    post:
+      summary: Run deadline sweeper
+      description: Finds expired campaigns and issues pro-rata refunds for unreleased funds.
+      responses:
+        '200':
+          description: Sweeper execution summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  swept_campaigns:
+                    type: integer
+                  refunds_issued:
+                    type: integer
+                  total_refunded_amount:
+                    type: number
+
+  /admin/reconcile:
+    post:
+      summary: Manual ledger reconcile run
+      description: Scans SUBMITTED ledger entries and cross-checks status against PayPal.
+      responses:
+        '200':
+          description: Reconcile summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reconciled_count:
+                    type: integer
+                  mismatches:
+                    type: integer
+
+  /sim/seed:
+    post:
+      summary: Seed demo environment
+      description: Resets database and seeds fictional payees and active campaigns for demo.
+      responses:
+        '200':
+          description: Environment seeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: seeded
+
+  /sim/attack/{kind}:
+    post:
+      summary: Attack Lab simulation injection
+      description: Injects scripted fraud attack for demo and evaluation.
+      parameters:
+        - name: kind
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - forged_total
+              - payee_mismatch
+              - inflated_price
+              - duplicate_invoice
+              - reused_photo
+              - altered_date
+              - copied_story
+              - prompt_injection
+      responses:
+        '200':
+          description: Attack executed and evaluated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  attack_kind:
+                    type: string
+                  expected_verdict:
+                    type: string
+                  actual_verdict:
+                    type: string
+                  risk_score:
+                    type: integer
+                  detected:
+                    type: boolean
+                  explanation:
+                    type: string
+
+components:
+  schemas:
+    PayeeCreate:
+      type: object
+      required:
+        - legal_name
+        - registration_id
+        - paypal_email
+        - category
+      properties:
+        legal_name:
+          type: string
+          example: St. Jude Children's Health Center (Sandbox)
+        registration_id:
+          type: string
+          example: REG-US-89104
+        paypal_email:
+          type: string
+          format: email
+          example: stjude-payee@sandbox.paypal.com
+        category:
+          type: string
+          enum: [HEALTHCARE, EDUCATION, ANIMAL_WELFARE, DISASTER_RELIEF, COMMUNITY]
+          example: HEALTHCARE
+
+    Payee:
+      allOf:
+        - $ref: '#/components/schemas/PayeeCreate'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum: [PENDING, VERIFIED, BLOCKED]
+            created_at:
+              type: string
+              format: date-time
+
+    CampaignCreate:
+      type: object
+      required:
+        - title
+        - story
+        - purpose_category
+        - goal
+        - currency
+        - organizer
+        - payee_id
+      properties:
+        title:
+          type: string
+          example: Pediatric Cancer Treatment Support
+        story:
+          type: string
+          example: Direct funding for specialized pediatric radiation equipment and therapy.
+        purpose_category:
+          type: string
+          example: MEDICAL
+        goal:
+          type: number
+          example: 10000.00
+        currency:
+          type: string
+          default: USD
+          example: USD
+        organizer:
+          type: string
+          example: Sarah Connor
+        payee_id:
+          type: string
+          format: uuid
+        milestones:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              target_amount:
+                type: number
+        proof_deadline_minutes:
+          type: integer
+          default: 3
+          description: Minutes until unproven funds automatically refund (default 3 for hackathon demo).
+
+    Campaign:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        story:
+          type: string
+        purpose_category:
+          type: string
+        goal:
+          type: number
+        currency:
+          type: string
+        organizer:
+          type: string
+        payee_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [DRAFT, ACTIVE, CLOSED]
+        proof_deadline:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+    CampaignDetail:
+      allOf:
+        - $ref: '#/components/schemas/Campaign'
+        - type: object
+          properties:
+            payee:
+              $ref: '#/components/schemas/Payee'
+            total_donated:
+              type: number
+            total_held:
+              type: number
+            total_released:
+              type: number
+            total_refunded:
+              type: number
+
+    DonationCreate:
+      type: object
+      required:
+        - donor_name
+        - donor_email
+        - amount
+      properties:
+        donor_name:
+          type: string
+          example: Alex River
+        donor_email:
+          type: string
+          format: email
+          example: alex.donor@example.com
+        amount:
+          type: number
+          example: 150.00
+
+    DonationOrderResponse:
+      type: object
+      properties:
+        donation_id:
+          type: string
+          format: uuid
+        paypal_order_id:
+          type: string
+        approve_url:
+          type: string
+        status:
+          type: string
+
+    Donation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        campaign_id:
+          type: string
+          format: uuid
+        donor_name:
+          type: string
+        donor_email:
+          type: string
+        amount:
+          type: number
+        paypal_order_id:
+          type: string
+        paypal_capture_id:
+          type: string
+        status:
+          type: string
+          enum: [INITIATED, CAPTURED, REFUNDED]
+        created_at:
+          type: string
+          format: date-time
+
+    EvidenceUploadResponse:
+      type: object
+      properties:
+        evidence_id:
+          type: string
+          format: uuid
+        audit_id:
+          type: string
+          format: uuid
+        sha256:
+          type: string
+        phash:
+          type: string
+        requested_amount:
+          type: number
+        status:
+          type: string
+          enum: [PENDING, AUDITED]
+
+    Audit:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        evidence_id:
+          type: string
+          format: uuid
+        risk_score:
+          type: integer
+        decision:
+          type: string
+          enum: [RELEASE, REQUEST_MORE, HUMAN_REVIEW, REJECT]
+        explanation:
+          type: string
+        checks_json:
+          type: object
+        extracted_json:
+          type: object
+        model_info:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+
+    ReviewQueueItem:
+      type: object
+      properties:
+        audit_id:
+          type: string
+          format: uuid
+        campaign_id:
+          type: string
+          format: uuid
+        campaign_title:
+          type: string
+        payee_name:
+          type: string
+        requested_amount:
+          type: number
+        risk_score:
+          type: integer
+        decision:
+          type: string
+        explanation:
+          type: string
+        evidence_file_url:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        audit_id:
+          type: string
+          format: uuid
+        reviewer:
+          type: string
+        action:
+          type: string
+        reason:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    CampaignLedger:
+      type: object
+      properties:
+        campaign_id:
+          type: string
+          format: uuid
+        total_donations:
+          type: number
+        total_releases:
+          type: number
+        total_refunds:
+          type: number
+        held_balance:
+          type: number
+        entries:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              type:
+                type: string
+                enum: [DONATION, RELEASE, REFUND]
+              amount:
+                type: number
+              paypal_ref:
+                type: string
+              created_at:
+                type: string
+                format: date-time
+
+    DonorReceipt:
+      type: object
+      properties:
+        donation_id:
+          type: string
+          format: uuid
+        campaign_title:
+          type: string
+        donor_name:
+          type: string
+        amount:
+          type: number
+        status:
+          type: string
+        held_at:
+          type: string
+          format: date-time
+        releases:
+          type: array
+          items:
+            type: object
+            properties:
+              amount:
+                type: number
+              payee_name:
+                type: string
+              evidence_hash:
+                type: string
+              released_at:
+                type: string
+        refund:
+          type: object
+          nullable: true
+          properties:
+            amount:
+              type: number
+            reason:
+              type: string
+            refunded_at:
+              type: string
+        chain_hash:
+          type: string
+
+    AuditLogEntry:
+      type: object
+      properties:
+        seq:
+          type: integer
+        prev_hash:
+          type: string
+        hash:
+          type: string
+        event_type:
+          type: string
+        payload_json:
+          type: object
+        ts:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Invalid request payload or parameters
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+    NotFound:
+      description: Requested resource was not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
