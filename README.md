@@ -164,11 +164,14 @@ async with session.begin():
 
 ## 7. 30-Case Benchmark Evaluation
 
-Vouch was evaluated against an adversarial benchmark of 30 synthetic cases (12 legitimate, 18 fraudulent) across 3 consecutive end-to-end passes. See [`docs/EVAL.md`](file:///c:/Users/ACER/Desktop/PayPal%20ai%20Hackathon/docs/EVAL.md) for full metrics.
+Vouch was evaluated against an adversarial benchmark of 30 synthetic test cases (12 legitimate, 18 fraudulent) across 3 consecutive end-to-end passes. See [`docs/EVAL.md`](file:///c:/Users/ACER/Desktop/PayPal%20ai%20Hackathon/docs/EVAL.md) for full metrics and case-by-case logs.
+
+> [!NOTE]
+> **Synthetic Benchmark Disclosure:** The 30 evaluation cases are synthetic test vectors with deterministic mock fixture extraction. The **0.0% False-Release Rate on Fraud holds by construction against this synthetic attack grammar**. In production, OCR noise and scanner degradation will introduce additional variance; Vouch mitigates this by routing all ambiguous extractions or borderline risk scores (25–69) to human review quarantine rather than executing automatic releases.
 
 | Metric | Target | Benchmark Result | Status |
 | :--- | :---: | :---: | :---: |
-| **False-Release Rate on Fraud (FRR)** | **0.0%** | **0.0%** (0 / 18 fraud released) | **PASSED (Zero Tolerance)** |
+| **False-Release Rate on Fraud (FRR)** | **0.0%** | **0.0%** (0 / 18 fraud released) | **PASSED (By Construction on Synthetic Grammar)** |
 | **False-Hold Rate on Legit (FHR)** | $\le$ 15.0% | **8.3%** | **OPTIMAL** |
 | **Human-Review Routing Rate** | 20% – 40% | **30.0%** | **EXPECTED** |
 | **Run-to-Run Determinism** | 100% | **100.0%** (3 consecutive passes) | **REPRODUCIBLE** |
@@ -182,14 +185,17 @@ Vouch was evaluated against an adversarial benchmark of 30 synthetic cases (12 l
 6. **Altered Invoice Dates (Stale >90d or in Future):** Caught by Hard Check H3.
 7. **Adversarial Prompt Injection Inside Invoices:** Neutralized by Hard Check H6 / security scanner.
 
-### 7.1. Real-World Document Forgery Benchmark (ICDAR 2023)
-In addition to the 30-case synthetic attack suite, Vouch was evaluated against the public **ICDAR 2023 "Find it again!"** receipt forgery benchmark (988 receipts, 163 realistically manipulated via font splicing and numerical alterations). See [`docs/RECEIPT_FORGERY_EVAL.md`](file:///c:/Users/ACER/Desktop/PayPal%20ai%20Hackathon/docs/RECEIPT_FORGERY_EVAL.md).
+### 7.1. Document Forgery Coverage Model (ICDAR 2023 "Find it again!")
+In addition to the 30 synthetic attack cases, Vouch was modeled against the empirical failure and forgery distribution published in the **ICDAR 2023 "Find it again!"** dataset (988 scanned receipts, 163 realistically manipulated via font splicing, numerical alterations, and layout reuse). See [`docs/RECEIPT_FORGERY_EVAL.md`](file:///c:/Users/ACER/Desktop/PayPal%20ai%20Hackathon/docs/RECEIPT_FORGERY_EVAL.md).
 
-- **Total Scanned Receipts:** 988 (825 Authentic, 163 Forged)
-- **True Positives (Forged Invoices Caught):** 163 / 163 (**100.0% Recall**)
-- **False Negatives (Undetected Forgery):** 0 (**0.0% False-Release Rate**)
-- **Precision:** 83.16%
-- **F1-Score:** 0.9081
+> [!NOTE]
+> **Coverage Model Disclosure:** This evaluation is a theoretical rule-coverage simulation measuring whether Vouch's hard and soft checks mathematically intercept the 5 ICDAR forgery categories. It is not an unconstrained vision OCR run across raw image files.
+
+- **Total Scanned Receipts Distribution:** 988 (825 Authentic, 163 Forged)
+- **Theoretical Forgery Interception:** 163 / 163 (**100.0% Modeled Recall**)
+- **Undetected Forgery Rate:** 0 (**0.0% False-Release Modeled**)
+- **Calculated Precision:** 83.16% (accounting for scanner degradation false-positives)
+- **Modeled F1-Score:** 0.9081
 
 ---
 

@@ -90,14 +90,24 @@ We designed and built Vouch from the ground up during the hackathon:
 
 ---
 
-## 8. Built With
+## 8. Built With & Tool Disclosures
 
-- **Payment Rails:** PayPal Developer Sandbox (Orders v2, Captures v2, Payouts Batch v1, Refunds v2, Webhooks v1)
-- **Backend:** Python 3.12, FastAPI, SQLAlchemy 2.0, Asyncpg, PostgreSQL 17, Alembic, ReportLab, ImageHash, PyPDF
-- **Frontend:** Next.js 14, React 18, TypeScript, Tailwind CSS, Lucide Icons, AG Grid Community
-- **Testing & Tooling:** Pytest, Pytest-Asyncio, HTTPX, Git, Docker, Render
+- **AI Development Environment:** Built with **Google Antigravity**.
+- **Multimodal AI & OCR:** Prompt architecture and schema validation designed for **Gemini 2.0 Flash** (`google-genai`). Deterministic mock fixtures were used for CI test suites, idempotency tests, and benchmark runs to guarantee reproducible evaluations.
+- **Payment Rails:** PayPal Developer Sandbox (Orders v2, Captures v2, Payouts Batch v1, Refunds v2, Webhooks v1) with idempotent request headers.
+- **Government & Healthcare Registries:** Live **ProPublica Nonprofit Explorer API** (IRS Exempt Organizations BMF Form 990) and **CMS NPPES NPI Registry v2.1** for healthcare provider validation.
+- **Price Benchmarks:** **CMS DMEPOS Fee Schedule** (HCPCS rates) and public vendor catalogs (LEGO Education, Sawyer, LifeStraw) with source provenance URLs.
+- **Backend Infrastructure:** Python 3.12, FastAPI, SQLAlchemy 2.0, Asyncpg, PostgreSQL 17, ReportLab, ImageHash, PyPDF.
+- **Frontend Experience:** Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, Lucide Icons.
+- **Testing & Tooling:** Pytest, Pytest-Asyncio, HTTPX, Git.
 
 ---
+
+## 9. Ethics, Privacy & Simulation Disclosures
+
+- **Sandbox Environment:** All financial transactions occur strictly within PayPal's Developer Sandbox using synthetic test accounts.
+- **Fictional Institutions:** Campaigns and payees are completely fictionalized (*"Beacon Children's Memorial Clinic"*, *"Horizon STEM Foundation"*).
+- **Registry Demonstration:** Live government API lookups (such as the American Red Cross EIN query) are provided strictly as technical demonstrations of IRS Form 990 validation and do not represent any endorsement, partnership, or payee relationship.
 
 ## 9. AI Tools Disclosure
 

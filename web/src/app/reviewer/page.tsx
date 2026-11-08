@@ -228,6 +228,13 @@ export default function ReviewerQueuePage() {
           </div>
         </div>
 
+        <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl px-3 py-2 text-[11px] flex items-center space-x-2">
+          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+          <span>
+            <strong>Registry Verification Demo Only:</strong> Real non-profit and healthcare queries (e.g. American Red Cross Form 990 via ProPublica API) demonstrate live API validation. Vouch does not claim affiliation with or endorsement by these entities, and national charities cannot be onboarded as sandbox campaign payout payees.
+          </span>
+        </div>
+
         <form onSubmit={handleRunVerify} className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div>
             <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">

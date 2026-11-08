@@ -40,9 +40,9 @@ async def run_single_eval_pass(client: AsyncClient, labels: List[Dict[str, Any]]
     campaigns = seed_data["campaigns"]
 
     # Map campaigns by category/index
-    c_st_jude_id = campaigns[0]["id"]      # St. Jude / Pediatric / Medical
-    c_hope_id = campaigns[1]["id"]         # Hope Academy / STEM / Education
-    c_metro_id = campaigns[2]["id"]        # Metro Clinic / Healthcare / Water
+    c_beacon_id = campaigns[0]["id"]      # Beacon Clinic / Pediatric / Medical
+    c_hope_id = campaigns[1]["id"]        # Hope Academy / STEM / Education
+    c_metro_id = campaigns[2]["id"]       # Metro Clinic / Healthcare / Water
 
     invoices_dir = os.path.join(workspace_dir, "eval", "dataset", "invoices")
 
@@ -53,36 +53,36 @@ async def run_single_eval_pass(client: AsyncClient, labels: List[Dict[str, Any]]
 
     # Exact campaign assignment matching dataset_generator.py
     case_campaign_map = {
-        "case_01_legit_surgery": c_st_jude_id,
-        "case_02_legit_pediatric_med": c_st_jude_id,
+        "case_01_legit_surgery": c_beacon_id,
+        "case_02_legit_pediatric_med": c_beacon_id,
         "case_03_legit_stem_supplies": c_hope_id,
         "case_04_legit_clinic_supplies": c_metro_id,
-        "case_05_legit_radiation": c_st_jude_id,
+        "case_05_legit_radiation": c_beacon_id,
         "case_06_legit_water_units": c_metro_id,
-        "case_07_legit_wheelchair": c_st_jude_id,
+        "case_07_legit_wheelchair": c_beacon_id,
         "case_08_legit_hearing_rehab": c_metro_id,
         "case_09_legit_books_science": c_hope_id,
-        "case_10_legit_messy_scan_1": c_st_jude_id,
+        "case_10_legit_messy_scan_1": c_beacon_id,
         "case_11_legit_messy_scan_2": c_hope_id,
         "case_12_legit_messy_scan_3": c_metro_id,
-        "case_13_fraud_forged_total_1": c_st_jude_id,
+        "case_13_fraud_forged_total_1": c_beacon_id,
         "case_14_fraud_forged_total_2": c_hope_id,
         "case_15_fraud_forged_total_3": c_metro_id,
-        "case_16_fraud_payee_mismatch_1": c_st_jude_id,
+        "case_16_fraud_payee_mismatch_1": c_beacon_id,
         "case_17_fraud_payee_mismatch_2": c_hope_id,
         "case_18_fraud_payee_mismatch_3": c_metro_id,
-        "case_19_fraud_inflated_price_1": c_st_jude_id,
+        "case_19_fraud_inflated_price_1": c_beacon_id,
         "case_20_fraud_inflated_price_2": c_hope_id,
         "case_21_fraud_inflated_price_3": c_metro_id,
-        "case_22_fraud_duplicate_invoice_1": c_hope_id,      # Upload St Jude invoice to Hope Academy campaign
-        "case_23_fraud_duplicate_invoice_2": c_st_jude_id,   # Upload Hope Academy invoice to St Jude campaign
-        "case_24_fraud_duplicate_invoice_3": c_st_jude_id,   # Upload Metro invoice to St Jude campaign
-        "case_25_fraud_reused_photo_1": c_hope_id,           # Photo stolen from St Jude campaign
-        "case_26_fraud_reused_photo_2": c_metro_id,          # Photo stolen from Hope Academy campaign
-        "case_27_fraud_reused_photo_3": c_st_jude_id,        # Photo stolen from Metro campaign
-        "case_28_fraud_altered_date_past": c_st_jude_id,
+        "case_22_fraud_duplicate_invoice_1": c_hope_id,      # Upload Beacon invoice to Hope Academy campaign
+        "case_23_fraud_duplicate_invoice_2": c_beacon_id,   # Upload Hope Academy invoice to Beacon campaign
+        "case_24_fraud_duplicate_invoice_3": c_beacon_id,   # Upload Metro invoice to Beacon campaign
+        "case_25_fraud_reused_photo_1": c_hope_id,          # Photo stolen from Beacon campaign
+        "case_26_fraud_reused_photo_2": c_metro_id,         # Photo stolen from Hope Academy campaign
+        "case_27_fraud_reused_photo_3": c_beacon_id,        # Photo stolen from Metro campaign
+        "case_28_fraud_altered_date_past": c_beacon_id,
         "case_29_fraud_altered_date_future": c_hope_id,
-        "case_30_fraud_prompt_injection": c_st_jude_id,
+        "case_30_fraud_prompt_injection": c_beacon_id,
     }
 
     for case in ordered_labels:
@@ -93,7 +93,7 @@ async def run_single_eval_pass(client: AsyncClient, labels: List[Dict[str, Any]]
         category = case["category"]
         attack_type = case.get("attack_type")
 
-        cid = case_campaign_map.get(case_id, c_st_jude_id)
+        cid = case_campaign_map.get(case_id, c_beacon_id)
 
         t0 = time.perf_counter()
         with open(pdf_path, "rb") as f:
@@ -208,13 +208,17 @@ def generate_markdown_report(all_runs: List[Dict[str, Any]], output_path: str):
 **Execution Passes:** 3 complete end-to-end runs  
 **Audit Pipeline:** Multimodal LLM Extraction + 6 Deterministic Hard Checks (H1–H6) + 6 Soft Signals (S1–S6) + Cross-Campaign Fingerprint Reuse Matching
 
+> [!IMPORTANT]
+> **Methodology Disclosure & Evaluation Caveats:**  
+> The 30 evaluation test cases are synthetic vectors generated with explicit mathematical defects, spoofed identifiers, altered dates, and adversarial strings. In mock provider mode, the test fixtures mirror the injected parameters, so the **0.0% False-Release Rate on Fraud holds by construction against this synthetic attack grammar**. In production with an unconstrained vision LLM, OCR noise and scanner degradation will introduce additional variance. Vouch addresses this by routing all borderline confidence or anomaly scores (risk 25–69) to human review quarantine rather than executing automatic releases.
+
 ---
 
 ## 1. Key Metrics Summary
 
 | Metric | Target | Benchmark Result | Status |
 | :--- | :---: | :---: | :---: |
-| **False-Release Rate on Fraud (FRR)** | **0.0%** | **{avg_frr:.1f}%** (0 / {fraud_count} released) | **PASSED (Zero Tolerance)** |
+| **False-Release Rate on Fraud (FRR)** | **0.0%** | **{avg_frr:.1f}%** (0 / {fraud_count} released) | **PASSED (By Construction on Synthetic Grammar)** |
 | **False-Hold Rate on Legit (FHR)** | <= 15.0% | **{avg_fhr:.1f}%** | **OPTIMAL** |
 | **Human-Review Routing Rate** | 20% – 40% | **{avg_hr:.1f}%** | **EXPECTED** |
 | **Run-to-Run Determinism** | 100% | **{consistency:.1f}%** (3 consecutive runs) | **DETERMINISTIC** |
@@ -235,7 +239,7 @@ Vouch was evaluated against 8 distinct fraud patterns designed to simulate real-
 | **Payee Mismatch / Spoofing** | 3 | 3 | 0 | 0 | Hard Check H1: Verified payee ID match |
 | **Price Inflation (>3σ above baseline)** | 3 | 0 | 3 | 0 | Soft Signal S2: Reference price deviation |
 | **Duplicate Cross-Campaign Invoices** | 3 | 3 | 0 | 0 | Hard Check H5: Cross-campaign SHA-256 / invoice# reuse |
-| **Reused Photo / Crop Laundering** | 3 | 0 | 3 | 0 | Soft Signal S3: Perceptual Hash (pHash Hamming $\le 6$) |
+| **Reused Photo / Crop Laundering** | 3 | 0 | 3 | 0 | Soft Signal S3: Perceptual Hash (pHash Hamming $\\le 6$) |
 | **Altered Dates (Stale >90d / Future)** | 2 | 2 | 0 | 0 | Hard Check H3: Strict date recency window |
 | **Prompt Injection Payload in Invoice** | 1 | 1 | 0 | 0 | Hard Check H6: Prompt injection pattern scanner |
 

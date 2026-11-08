@@ -31,20 +31,20 @@ async def seed_demo_environment(db: AsyncSession = Depends(get_db)):
     Seeds fictional payees and active campaigns for demo and evaluation.
     Preserves database integrity and initializes clean demo state.
     """
-    # Create or retrieve St. Jude Fictional
+    # Create or retrieve Beacon Clinic Fictional
     stmt = select(Payee).where(Payee.registration_id == "REG-US-89104")
-    st_jude = (await db.execute(stmt)).scalar_one_or_none()
-    if not st_jude:
-        st_jude = Payee(
-            legal_name="St. Jude Children's Health Center (Sandbox Fictional)",
+    beacon_clinic = (await db.execute(stmt)).scalar_one_or_none()
+    if not beacon_clinic:
+        beacon_clinic = Payee(
+            legal_name="Beacon Children's Memorial Clinic (Sandbox Fictional)",
             registration_id="REG-US-89104",
-            paypal_email="stjude-payee@sandbox.paypal.com",
+            paypal_email="beacon-clinic@sandbox.paypal.com",
             category="HEALTHCARE",
             status="VERIFIED",
             verified_by="system_seed",
-            notes="Seeded verified fictional hospital.",
+            notes="Seeded verified fictional clinic.",
         )
-        db.add(st_jude)
+        db.add(beacon_clinic)
         await db.flush()
 
     # Create or retrieve Hope Academy
@@ -85,12 +85,12 @@ async def seed_demo_environment(db: AsyncSession = Depends(get_db)):
     if not c1:
         c1 = Campaign(
             title="Pediatric Cancer Treatment Support",
-            story="Direct funding for specialized pediatric radiation equipment and therapy at St. Jude.",
+            story="Direct funding for specialized pediatric radiation equipment and therapy at Beacon Children's Memorial Clinic.",
             purpose_category="MEDICAL",
             goal=15000.0,
             currency="USD",
             organizer="Sarah Connor",
-            payee_id=st_jude.id,
+            payee_id=beacon_clinic.id,
             status="ACTIVE",
             proof_deadline=utcnow() + timedelta(minutes=15),
         )
@@ -206,7 +206,7 @@ async def seed_demo_environment(db: AsyncSession = Depends(get_db)):
         session=db,
         event_type="ENVIRONMENT_SEEDED",
         payload={
-            "st_jude_id": str(st_jude.id),
+            "beacon_clinic_id": str(beacon_clinic.id),
             "hope_academy_id": str(hope.id),
             "metro_health_id": str(metro.id),
             "campaign_1_id": str(c1.id),
@@ -219,7 +219,7 @@ async def seed_demo_environment(db: AsyncSession = Depends(get_db)):
     return {
         "status": "seeded",
         "payees": [
-            {"id": str(st_jude.id), "name": st_jude.legal_name, "status": st_jude.status},
+            {"id": str(beacon_clinic.id), "name": beacon_clinic.legal_name, "status": beacon_clinic.status},
             {"id": str(hope.id), "name": hope.legal_name, "status": hope.status},
             {"id": str(metro.id), "name": metro.legal_name, "status": metro.status},
         ],
@@ -326,3 +326,19 @@ async def run_attack_simulation(kind: str, db: AsyncSession = Depends(get_db)):
         "explanation": audit.explanation,
         "checks_breakdown": audit.checks_json,
     }
+
+
+@router.get("/paypal-smoke")
+async def paypal_sandbox_smoke_probe():
+    """Executes live PayPal Sandbox integration smoke test."""
+    from scripts.paypal_smoke import run_paypal_smoke_test
+    return run_paypal_smoke_test()
+
+
+@router.post("/reset-demo")
+async def reset_demo_endpoint():
+    """Resets database to clean, pristine demo state with ~7 audit log blocks."""
+    from scripts.reset_demo_db import reset_demo_database
+    await reset_demo_database()
+    return {"status": "success", "message": "Demo database purged and cleanly reseeded."}
+

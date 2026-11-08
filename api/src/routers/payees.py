@@ -43,6 +43,14 @@ class PayeeExternalVerifyRequest(BaseModel):
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_payee(payload: PayeeCreate, db: AsyncSession = Depends(get_db)):
     """Register a new institutional payee (default status: PENDING)."""
+    # Safeguard: Prevent real national non-profits from being created as disbursement payees
+    clean_reg = payload.registration_id.replace("-", "").strip()
+    if clean_reg == "530196605" or "red cross" in payload.legal_name.lower():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="American Red Cross is supported for live government registry verification demos only, and cannot be registered as an active campaign payout recipient.",
+        )
+
     # Check if registration_id already exists
     stmt = select(Payee).where(Payee.registration_id == payload.registration_id)
     existing = (await db.execute(stmt)).scalar_one_or_none()
