@@ -119,3 +119,4 @@ class PaymentProvider(ABC):
     ) -> WebhookVerificationResult:
         """Verify the cryptographic signature of incoming PayPal webhook notifications."""
         pass
+

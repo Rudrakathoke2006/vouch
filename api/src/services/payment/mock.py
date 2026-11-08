@@ -251,3 +251,4 @@ class MockPaymentProvider(PaymentProvider):
             event_id=body.get("id", f"mock_evt_{uuid.uuid4().hex[:8]}"),
             resource=body.get("resource", {}),
         )
+

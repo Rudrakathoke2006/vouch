@@ -1,20 +1,30 @@
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from api.src.config import settings
+from api.src.database import engine, Base
 from api.src.services.payment.factory import get_payment_provider
+from api.src.routers.payees import router as payees_router
+from api.src.routers.campaigns import router as campaigns_router
+from api.src.routers.audits import router as audits_router
+from api.src.routers.transparency import router as transparency_router
+from api.src.routers.sim import router as sim_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup actions
+    # Ensure database schema exists on startup
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     yield
-    # Shutdown actions
 
 
 app = FastAPI(
     title="Vouch API",
-    description="Hold, Verify, Release donation escrow system running on PayPal rails with AI auditing.",
+    description="Hold, Verify, Release donation escrow system running on PayPal rails with AI evidence auditing.",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -27,6 +37,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount upload storage for evidence viewer
+os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+
+# Include modular API routers
+app.include_router(payees_router)
+app.include_router(campaigns_router)
+app.include_router(audits_router)
+app.include_router(transparency_router)
+app.include_router(sim_router)
 
 
 @app.get("/healthz", tags=["System"])
@@ -41,5 +62,5 @@ async def healthz():
         "payment_provider": settings.PAYMENT_PROVIDER.value,
         "llm_provider": settings.LLM_PROVIDER.value,
         "llm_model": settings.LLM_MODEL,
-        "database": "configured",
+        "database": "connected",
     }

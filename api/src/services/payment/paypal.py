@@ -397,3 +397,4 @@ class PayPalSandboxPaymentProvider(PaymentProvider):
                 event_id=body_json.get("id"),
                 resource=body_json.get("resource", {}),
             )
+

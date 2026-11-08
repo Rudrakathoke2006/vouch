@@ -120,3 +120,4 @@ async def test_simulated_failures(mock_provider):
             receiver_email="test@hospital.org",
             amount=50.0,
         )
+

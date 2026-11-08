@@ -164,3 +164,4 @@ if __name__ == "__main__":
     provider_arg = sys.argv[1] if len(sys.argv) > 1 else None
     success = asyncio.run(run_smoke_test(provider_arg))
     sys.exit(0 if success else 1)
+

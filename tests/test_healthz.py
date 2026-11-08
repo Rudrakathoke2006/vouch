@@ -13,3 +13,4 @@ async def test_healthz_endpoint():
         assert data["service"] == "vouch-api"
         assert "payment_provider" in data
         assert "llm_provider" in data
+
