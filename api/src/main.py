@@ -11,6 +11,8 @@ from api.src.routers.campaigns import router as campaigns_router
 from api.src.routers.audits import router as audits_router
 from api.src.routers.transparency import router as transparency_router
 from api.src.routers.sim import router as sim_router
+from api.src.routers.webhooks import router as webhooks_router
+
 
 
 @asynccontextmanager
@@ -48,6 +50,8 @@ app.include_router(campaigns_router)
 app.include_router(audits_router)
 app.include_router(transparency_router)
 app.include_router(sim_router)
+app.include_router(webhooks_router)
+
 
 
 @app.get("/healthz", tags=["System"])

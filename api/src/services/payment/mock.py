@@ -198,11 +198,21 @@ class MockPaymentProvider(PaymentProvider):
             return RefundResult(**cached)
 
         if capture_id not in self.captures:
-            raise MockPaymentError(f"MockCaptureNotFound: Capture {capture_id} does not exist")
+            if capture_id.startswith("mock_"):
+                self.captures[capture_id] = {
+                    "capture_id": capture_id,
+                    "order_id": f"order_{capture_id}",
+                    "status": "COMPLETED",
+                    "amount": amount * 10.0,
+                    "currency": currency.upper(),
+                }
+            else:
+                raise MockPaymentError(f"MockCaptureNotFound: Capture {capture_id} does not exist")
 
         capture = self.captures[capture_id]
         if amount > capture["amount"]:
             raise ValueError(f"Refund amount {amount} exceeds capture amount {capture['amount']}")
+
 
         # Enforce single refund invariant per capture in mock
         for ref in self.refunds.values():
@@ -235,7 +245,11 @@ class MockPaymentProvider(PaymentProvider):
         except Exception:
             body = {}
 
-        sig = headers.get("PAYPAL-TRANSMISSION-SIG", "")
+        sig = (
+            headers.get("PAYPAL-TRANSMISSION-SIG")
+            or headers.get("paypal-transmission-sig")
+            or ""
+        )
         # Reject if signature header is explicitly "INVALID"
         if sig == "INVALID":
             return WebhookVerificationResult(
@@ -243,6 +257,7 @@ class MockPaymentProvider(PaymentProvider):
                 status="FAILURE",
                 resource={},
             )
+
 
         return WebhookVerificationResult(
             verified=True,

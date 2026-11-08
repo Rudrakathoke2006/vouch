@@ -95,7 +95,32 @@ async def seed_demo_environment(db: AsyncSession = Depends(get_db)):
         db.add(don)
         db.add(LedgerEntry(campaign_id=c1.id, type="DONATION", amount=5000.0, paypal_ref="mock_seed_cap_01", status="CONFIRMED"))
 
-    # Create Active Campaign 2
+    # Check if campaign 1 has held balance; if not, add topup
+    from api.src.services.ledger import compute_held
+    c1_held = await compute_held(db, c1.id)
+    if c1_held < 2500.0:
+        c1.status = "ACTIVE"
+        c1.proof_deadline = utcnow() + timedelta(minutes=15)
+        topup_id = uuid.uuid4()
+        db.add(Donation(
+            id=topup_id,
+            campaign_id=c1.id,
+            donor_name="Demo Donor",
+            donor_email="demo.donor@sandbox.vouch",
+            amount=5000.0,
+            paypal_order_id=f"mock_topup_ord_{topup_id.hex[:8]}",
+            paypal_capture_id=f"mock_cap_{topup_id.hex[:8]}",
+            status="CAPTURED",
+            request_id=f"topup_req_{topup_id.hex[:8]}",
+        ))
+        db.add(LedgerEntry(
+            campaign_id=c1.id,
+            type="DONATION",
+            amount=5000.0,
+            paypal_ref=f"mock_cap_{topup_id.hex[:8]}",
+            status="CONFIRMED",
+        ))
+
     stmt_c2 = select(Campaign).where(Campaign.title == "STEM Robotics Lab Equipment")
     c2 = (await db.execute(stmt_c2)).scalar_one_or_none()
     if not c2:
