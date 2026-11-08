@@ -73,6 +73,14 @@ async def create_payee(payload: PayeeCreate, db: AsyncSession = Depends(get_db))
     return payee
 
 
+@router.get("")
+async def list_payees(db: AsyncSession = Depends(get_db)):
+    """List all registered institutional payees."""
+    stmt = select(Payee).order_by(Payee.created_at.desc())
+    result = await db.execute(stmt)
+    return result.scalars().all()
+
+
 @router.post("/{payee_id}/verify")
 async def verify_payee(
     payee_id: uuid.UUID,
