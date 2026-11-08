@@ -31,6 +31,15 @@ class PayeeConfirmEvidenceRequest(BaseModel):
     notes: Optional[str] = None
 
 
+class PayeeExternalVerifyRequest(BaseModel):
+    payee_id: Optional[uuid.UUID] = None
+    verification_type: str  # "NONPROFIT_IRS" or "HEALTHCARE_NPI"
+    ein: Optional[str] = None
+    npi: Optional[str] = None
+    claimed_name: str
+    state: Optional[str] = None
+
+
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_payee(payload: PayeeCreate, db: AsyncSession = Depends(get_db)):
     """Register a new institutional payee (default status: PENDING)."""
@@ -126,4 +135,58 @@ async def confirm_evidence_by_payee(
         "payee_confirmed": evidence.payee_confirmed,
         "confirmed_at": evidence.payee_confirmed_at,
     }
+
+
+@router.post("/verify-external")
+async def verify_payee_external(
+    payload: PayeeExternalVerifyRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Live external government and public registry verification:
+    - NONPROFIT_IRS: ProPublica Nonprofit Explorer API (IRS 501(c)(3) Business Master File)
+    - HEALTHCARE_NPI: CMS NPPES NPI Registry v2.1 API (NPI-2 Healthcare Provider Organizations)
+    """
+    from api.src.services.payee_verifier import verify_nonprofit_propublica, verify_hospital_nppes
+
+    if payload.verification_type == "NONPROFIT_IRS":
+        if not payload.ein:
+            raise HTTPException(status_code=400, detail="EIN is required for NONPROFIT_IRS verification.")
+        result = await verify_nonprofit_propublica(
+            session=db,
+            payee_id=payload.payee_id,
+            ein=payload.ein,
+            claimed_name=payload.claimed_name,
+        )
+    elif payload.verification_type == "HEALTHCARE_NPI":
+        result = await verify_hospital_nppes(
+            session=db,
+            payee_id=payload.payee_id,
+            npi=payload.npi,
+            org_name=payload.claimed_name,
+            state=payload.state or "TN",
+        )
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported verification_type '{payload.verification_type}'. Use 'NONPROFIT_IRS' or 'HEALTHCARE_NPI'.",
+        )
+
+    # Append verification to tamper-evident audit log
+    await append_audit_log(
+        session=db,
+        event_type="PAYEE_EXTERNAL_REGISTRY_VERIFIED",
+        payload={
+            "payee_id": str(payload.payee_id) if payload.payee_id else None,
+            "verification_type": payload.verification_type,
+            "ein": payload.ein,
+            "npi": payload.npi,
+            "claimed_name": payload.claimed_name,
+            "ok": result.get("ok"),
+            "status": result.get("status"),
+        },
+    )
+    await db.commit()
+    return result
+
 

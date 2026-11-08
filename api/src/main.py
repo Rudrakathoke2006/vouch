@@ -4,7 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from api.src.config import settings
-from api.src.database import engine, Base
+from api.src.database import engine
+from api.src.models import Base
 from api.src.services.payment.factory import get_payment_provider
 from api.src.routers.payees import router as payees_router
 from api.src.routers.campaigns import router as campaigns_router
@@ -12,6 +13,7 @@ from api.src.routers.audits import router as audits_router
 from api.src.routers.transparency import router as transparency_router
 from api.src.routers.sim import router as sim_router
 from api.src.routers.webhooks import router as webhooks_router
+from api.src.routers.reference_prices import router as reference_prices_router
 
 
 
@@ -51,6 +53,7 @@ app.include_router(audits_router)
 app.include_router(transparency_router)
 app.include_router(sim_router)
 app.include_router(webhooks_router)
+app.include_router(reference_prices_router)
 
 
 

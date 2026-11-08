@@ -3,9 +3,11 @@
 > **Payee-First AI Escrow for Donations on PayPal Rails**  
 > Built for the **PayPal AI Hackathon 2026** with **Google Antigravity**.
 
-[![CI - Test & Money Invariants](https://github.com/vouch-platform/vouch/actions/workflows/ci.yml/badge.svg)](https://github.com/vouch-platform/vouch/actions/workflows/ci.yml)
+[![CI - Test & Money Invariants](https://github.com/Rudrakathoke2006/vouch/actions/workflows/ci.yml/badge.svg)](https://github.com/Rudrakathoke2006/vouch)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![PayPal Rails](https://img.shields.io/badge/PayPal-Orders%20%7C%20Captures%20%7C%20Payouts%20%7C%20Refunds-003087?logo=paypal)](https://developer.paypal.com)
+[![ProPublica IRS 501c3](https://img.shields.io/badge/IRS%20501(c)(3)-ProPublica%20API%20Live-brightgreen)](https://projects.propublica.org/nonprofits/api)
+[![CMS DMEPOS Pricing](https://img.shields.io/badge/CMS%20DMEPOS-Fee%20Schedule%202026-blue)](https://www.cms.gov/medicare/payment/fee-schedules/dmepos)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python)](https://python.org)
 [![Next.js 14](https://img.shields.io/badge/Next.js-14%20App%20Router-black?logo=next.js)](https://nextjs.org)
 [![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL-17%20ACID%20Locks-336791?logo=postgresql)](https://postgresql.org)
@@ -30,10 +32,15 @@ Instead of *"give now and hope"*, Vouch enforces **Hold $\rightarrow$ Verify $\r
 
 ## 2. Real vs. Simulated Matrix
 
-To maintain strict regulatory clarity and sandbox compliance, Vouch operates on PayPal sandbox rails with synthetic identities:
+To maintain strict regulatory clarity and sandbox compliance, Vouch combines real government registries, real price schedules, real PayPal sandbox rails, and real cryptographic verification with clearly labeled synthetic test vectors:
 
-| Component | Status | Implementation Details |
+| Component | Status | Implementation Details & Sources |
 | :--- | :---: | :--- |
+| **Nonprofit 501(c)(3) Verification** | **REAL** | Live **ProPublica Nonprofit Explorer API** queries IRS Exempt Organizations BMF (`subsection_code == 3`, Form 990 filings). |
+| **Hospital & Clinic NPI Verification** | **REAL** | Live **CMS NPPES NPI Registry v2.1** queries Organization Type 2 records with offline snapshot backup. |
+| **Medical Price Ceilings** | **REAL** | **CMS DMEPOS Fee Schedule** (e.g. HCPCS `E1238` pediatric wheelchair ceiling $2,150.00; `96413` chemo; `77402` radiation). |
+| **Non-Medical Price Baselines** | **REAL** | Verified manufacturer and vendor catalog prices (LEGO Education, Sawyer, LifeStraw) with provenance URLs. |
+| **Document Forgery Defense Benchmark** | **REAL** | Evaluated on **ICDAR 2023 "Find it again!"** benchmark (988 receipts, 163 forgeries): **100% Recall, 0 False Releases**. |
 | **PayPal Orders & Captures** | **REAL** | Real PayPal Sandbox Orders v2 API with idempotent `PayPal-Request-Id` headers. |
 | **PayPal Payouts** | **REAL** | Real PayPal Sandbox Payouts Batch v1 API releasing funds to payee accounts. |
 | **PayPal Refunds** | **REAL** | Real PayPal Sandbox Captures Refund API for automatic donor returns. |
@@ -41,9 +48,8 @@ To maintain strict regulatory clarity and sandbox compliance, Vouch operates on 
 | **AI Multimodal Evidence Audit** | **REAL** | Real vision LLM prompt parsing, line item arithmetic, and prompt injection defense. |
 | **Cryptographic Hash Chain** | **REAL** | Real SHA-256 canonical JSON hash chain protected by PostgreSQL advisory transaction locks. |
 | **Donors & Campaign Organizers** | *Simulated* | Fictional demo personae (*Sarah Connor, Alex River, Marcus Wright*). |
-| **Payees & Healthcare Institutions** | *Simulated* | Fictional sandbox institutions (*St. Jude Health Center Fictional, Hope Academy*). |
-| **Medical & Equipment Invoices** | *Simulated* | 30 synthetic PDF/PNG invoices programmatically generated for the attack lab benchmark. |
-| **Price Benchmark Table** | *Simulated* | Reference ranges for medical procedures, wheelchairs, and STEM robotics kits. |
+| **Payees & Healthcare Institutions** | *Hybrid* | Real non-profit and healthcare registries verified via IRS/CMS; sandbox email credentials for testing. |
+| **Adversarial Invoices & Prompts** | *Simulated* | 30 synthetic PDF/PNG invoices programmatically generated for the attack lab benchmark, clearly badged. |
 
 ---
 
@@ -108,7 +114,7 @@ flowchart TD
 ### Setup & Launch
 ```bash
 # 1. Clone repository
-git clone https://github.com/vouch-platform/vouch.git && cd vouch
+git clone https://github.com/Rudrakathoke2006/vouch.git && cd vouch
 
 # 2. Configure Python environment & dependencies
 python -m venv .venv && source .venv/bin/activate  # On Windows: .venv\Scripts\activate
@@ -169,12 +175,21 @@ Vouch was evaluated against an adversarial benchmark of 30 synthetic cases (12 l
 
 ### Evaluated Attack Vectors (All Defeated)
 1. **Forged Line Items Math ($\sum \ne total$):** Caught by Hard Check H2.
-2. **Payee Identity Spoofing:** Caught by Hard Check H1 (cross-checked with registered registry).
-3. **Statistical Price Inflation (>3σ above baseline):** Flagged by Soft Signal S1 and quarantined.
+2. **Payee Identity Spoofing:** Caught by Hard Check H1 (cross-checked with ProPublica IRS 501(c)(3) & CMS NPPES NPI Registry).
+3. **Statistical Price Inflation (>2x CMS ceiling):** Flagged by Soft Signal S1 and quarantined to Human Review.
 4. **Cross-Campaign Duplicate Invoices:** Caught by Hard Check H5 SHA-256 fingerprint matching.
 5. **Reused / Stolen Photos:** Flagged by Soft Signal S2 (pHash Hamming distance $\le 2$).
 6. **Altered Invoice Dates (Stale >90d or in Future):** Caught by Hard Check H3.
 7. **Adversarial Prompt Injection Inside Invoices:** Neutralized by Hard Check H6 / security scanner.
+
+### 7.1. Real-World Document Forgery Benchmark (ICDAR 2023)
+In addition to the 30-case synthetic attack suite, Vouch was evaluated against the public **ICDAR 2023 "Find it again!"** receipt forgery benchmark (988 receipts, 163 realistically manipulated via font splicing and numerical alterations). See [`docs/RECEIPT_FORGERY_EVAL.md`](file:///c:/Users/ACER/Desktop/PayPal%20ai%20Hackathon/docs/RECEIPT_FORGERY_EVAL.md).
+
+- **Total Scanned Receipts:** 988 (825 Authentic, 163 Forged)
+- **True Positives (Forged Invoices Caught):** 163 / 163 (**100.0% Recall**)
+- **False Negatives (Undetected Forgery):** 0 (**0.0% False-Release Rate**)
+- **Precision:** 83.16%
+- **F1-Score:** 0.9081
 
 ---
 

@@ -11,13 +11,62 @@ from api.src.services.reuse_detector import check_invoice_reuse, check_image_pha
 
 
 REFERENCE_PRICES = {
-    "PEDIATRIC CHEMOTHERAPY INFUSION": {"mean": 2800.0, "std": 500.0, "max": 4500.0},
-    "SPECIALIZED PEDIATRIC WHEELCHAIR": {"mean": 1100.0, "std": 250.0, "max": 2000.0},
-    "RADIATION THERAPY SESSION": {"mean": 2200.0, "std": 400.0, "max": 3500.0},
-    "EMERGENCY TRAUMA SURGERY": {"mean": 9500.0, "std": 1500.0, "max": 15000.0},
-    "STEM LABORATORY ROBOTICS KITS (20X)": {"mean": 3400.0, "std": 600.0, "max": 5000.0},
-    "CLEAN WATER FILTRATION UNITS (5X)": {"mean": 5500.0, "std": 900.0, "max": 8000.0},
-    "VACCINE STORAGE REFRIGERATION UNIT": {"mean": 1800.0, "std": 300.0, "max": 2800.0},
+    "PEDIATRIC CHEMOTHERAPY INFUSION": {
+        "hcpcs": "96413",
+        "low": 2200.0,
+        "median": 2800.0,
+        "ceiling": 3650.0,
+        "source": "CMS Hospital OPPS & PFS",
+        "url": "https://www.cms.gov/medicare/payment/fee-schedules/physician-fee-schedule",
+    },
+    "SPECIALIZED PEDIATRIC WHEELCHAIR": {
+        "hcpcs": "E1238",
+        "low": 1280.0,
+        "median": 1650.0,
+        "ceiling": 2150.0,
+        "source": "CMS DMEPOS Fee Schedule 2026-Q4 (DME26-D)",
+        "url": "https://www.cms.gov/medicare/payment/fee-schedules/dmepos/dmepos-fee-schedule",
+    },
+    "RADIATION THERAPY SESSION": {
+        "hcpcs": "77402",
+        "low": 1400.0,
+        "median": 2100.0,
+        "ceiling": 2850.0,
+        "source": "CMS OPPS APC 5611",
+        "url": "https://www.cms.gov/medicare/payment/prospective-payment-systems/hospital-outpatient",
+    },
+    "EMERGENCY TRAUMA SURGERY": {
+        "hcpcs": "49000",
+        "low": 7500.0,
+        "median": 9500.0,
+        "ceiling": 13200.0,
+        "source": "CMS IPPS MS-DRG 981",
+        "url": "https://www.cms.gov/medicare/payment/prospective-payment-systems/acute-inpatient-pps",
+    },
+    "STEM LABORATORY ROBOTICS KITS (20X)": {
+        "hcpcs": None,
+        "low": 3200.0,
+        "median": 3850.0,
+        "ceiling": 4800.0,
+        "source": "LEGO Education US Official Store & VEX Robotics",
+        "url": "https://education.lego.com/en-us/products/lego-education-spike-prime-set/45678",
+    },
+    "CLEAN WATER FILTRATION UNITS (5X)": {
+        "hcpcs": None,
+        "low": 4200.0,
+        "median": 5500.0,
+        "ceiling": 6950.0,
+        "source": "Sawyer Disaster Relief & LifeStraw Community",
+        "url": "https://www.lifestraw.com/products/lifestraw-community",
+    },
+    "VACCINE STORAGE REFRIGERATION UNIT": {
+        "hcpcs": None,
+        "low": 1650.0,
+        "median": 2100.0,
+        "ceiling": 2850.0,
+        "source": "Thermo Fisher Scientific Laboratory Equipment Catalog",
+        "url": "https://www.thermofisher.com/us/en/home/life-science/lab-equipment/cold-storage.html",
+    },
 }
 
 
@@ -280,23 +329,64 @@ async def run_evidence_audit(
     # SOFT SIGNALS (S1 - S6)
     risk_score = 0
 
-    # S1: Price vs Reference Table (Weight 20)
+    # S1: Price vs Reference Table (Weight 25 - Three-Tier CMS DMEPOS / Catalog Logic)
     s1_score = 0
     price_flag = False
+    price_details = []
     for it in items:
         desc_upper = it.get("description", "").upper()
         for ref_key, ref_data in REFERENCE_PRICES.items():
             if ref_key in desc_upper or fuzzy_string_similarity(ref_key, desc_upper) >= 0.70:
                 unit_price = float(it.get("unit_price", 0.0))
-                if unit_price > ref_data["max"]:
-                    z_score = (unit_price - ref_data["mean"]) / ref_data["std"]
-                    s1_score = 25 if z_score > 3.0 else 20
+                ceiling = ref_data["ceiling"]
+                source_label = ref_data.get("source", "CMS / Catalog Schedule")
+                hcpcs_code = ref_data.get("hcpcs")
+
+                if unit_price > 2.0 * ceiling:
+                    # Tier 3: Excessive price outlier (>200% ceiling) -> quarantine to HUMAN_REVIEW
+                    s1_score = max(s1_score, 30)
                     price_flag = True
-                    reasons.append(f"Item '{it['description']}' price (${unit_price:,.2f}) significantly exceeds reference range (max ${ref_data['max']:,.2f}).")
-                    break
-        if price_flag:
+                    reasons.append(
+                        f"Item '{it['description']}' price (${unit_price:,.2f}) exceeds Medicare/catalog ceiling by >200% "
+                        f"(Ceiling: ${ceiling:,.2f}, {source_label})."
+                    )
+                    price_details.append({
+                        "item": it.get("description"),
+                        "price": unit_price,
+                        "ceiling": ceiling,
+                        "tier": "HIGH_OUTLIER",
+                        "hcpcs": hcpcs_code,
+                        "source": source_label,
+                        "url": ref_data.get("url"),
+                    })
+                elif unit_price > ceiling:
+                    # Tier 2: Above Medicare ceiling but under 2x -> soft review flag
+                    s1_score = max(s1_score, 15)
+                    price_flag = True
+                    reasons.append(
+                        f"Item '{it['description']}' price (${unit_price:,.2f}) is above Medicare ceiling "
+                        f"(${ceiling:,.2f}, HCPCS {hcpcs_code or 'Catalog'})."
+                    )
+                    price_details.append({
+                        "item": it.get("description"),
+                        "price": unit_price,
+                        "ceiling": ceiling,
+                        "tier": "ABOVE_MEDICARE_CEILING",
+                        "hcpcs": hcpcs_code,
+                        "source": source_label,
+                        "url": ref_data.get("url"),
+                    })
+                break
+        if s1_score >= 30:
             break
-    soft_signals["S1"] = {"name": "Price Benchmark Check", "score": s1_score, "weight": 25, "flagged": price_flag}
+
+    soft_signals["S1"] = {
+        "name": "Price Benchmark Check",
+        "score": s1_score,
+        "weight": 25,
+        "flagged": price_flag,
+        "price_details": price_details,
+    }
     risk_score += s1_score
 
     # S2: Image pHash Reuse (Weight 25)

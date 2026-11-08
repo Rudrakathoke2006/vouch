@@ -198,6 +198,10 @@ async def seed_demo_environment(db: AsyncSession = Depends(get_db)):
         db.add(don3)
         db.add(LedgerEntry(campaign_id=c3.id, type="DONATION", amount=10000.0, paypal_ref="mock_seed_cap_03", status="CONFIRMED"))
 
+    # Seed real CMS DMEPOS & Catalog reference prices
+    from api.src.routers.reference_prices import seed_reference_prices
+    await seed_reference_prices(db=db)
+
     await append_audit_log(
         session=db,
         event_type="ENVIRONMENT_SEEDED",

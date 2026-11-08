@@ -40,8 +40,8 @@ const ATTACK_SCENARIOS: AttackScenario[] = [
   },
   {
     key: "inflated_price",
-    title: "Statistical Price Inflation",
-    description: "Specialized wheelchair billed at $14,500 (reference range mean: $1,100, max: $2,000).",
+    title: "Price Exceeds CMS Fee Ceiling",
+    description: "Pediatric wheelchair billed at $14,500. CMS DMEPOS HCPCS E1238 ceiling is $2,150.00 (exceeds ceiling by >600%).",
     icon: ShieldAlert,
     expectedVerdict: "HUMAN_REVIEW (Soft Signal S1)",
   },
@@ -125,9 +125,14 @@ export default function AttackLabPage() {
                   <div className="p-2.5 bg-slate-100 rounded-2xl text-slate-800">
                     <Icon className="w-5 h-5 text-red-600" />
                   </div>
-                  <span className="text-[11px] font-bold text-slate-400 uppercase">
-                    Target: {scenario.expectedVerdict}
-                  </span>
+                  <div className="flex items-center space-x-2">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">
+                      Synthetic Test Vector
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">
+                      Target: {scenario.expectedVerdict}
+                    </span>
+                  </div>
                 </div>
 
                 <div>

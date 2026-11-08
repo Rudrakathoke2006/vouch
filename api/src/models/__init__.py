@@ -14,6 +14,8 @@ from api.src.models.all_models import (
     AuditLog,
     AgentTrace,
     WebhookEvent,
+    ReferencePrice,
+    PayeeVerification,
 )
 
 __all__ = [
@@ -32,5 +34,7 @@ __all__ = [
     "AuditLog",
     "AgentTrace",
     "WebhookEvent",
+    "ReferencePrice",
+    "PayeeVerification",
 ]
 

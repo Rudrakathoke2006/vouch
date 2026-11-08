@@ -242,3 +242,34 @@ class WebhookEvent(Base):
     status = Column(String(50), default="PROCESSED", nullable=False)
     received_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
 
+
+class ReferencePrice(Base):
+    __tablename__ = "reference_prices"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    item_key = Column(String(100), unique=True, nullable=False, index=True)
+    description = Column(String(255), nullable=False)
+    hcpcs = Column(String(20), nullable=True, index=True)
+    low = Column(Float, nullable=False)
+    median = Column(Float, nullable=False)
+    high = Column(Float, nullable=False)  # Medicare ceiling or public vendor high
+    source = Column(String(255), nullable=False)
+    source_url = Column(Text, nullable=False)
+    effective_date = Column(DateTime(timezone=True), nullable=False)
+    retrieved_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+
+class PayeeVerification(Base):
+    __tablename__ = "payee_verifications"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    payee_id = Column(UUID(as_uuid=True), ForeignKey("payees.id", ondelete="CASCADE"), nullable=False, index=True)
+    ein = Column(String(50), nullable=True, index=True)
+    npi = Column(String(50), nullable=True, index=True)
+    source = Column(String(100), nullable=False)  # "PROPUBLICA_IRS_990", "CMS_NPPES_NPI"
+    result = Column(JSON, nullable=False)
+    checked_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+    payee = relationship("Payee", backref="verifications")
+
+
